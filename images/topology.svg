@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 320" font-family="DejaVu Sans, Arial, sans-serif" font-size="14">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- One Ethernet segment (single layer-2 domain) spanning all three nodes -->
+  <rect x="12" y="64" width="796" height="150" rx="14" fill="#f5f8fc" stroke="#cdd9e8" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="28" y="84" font-size="12" fill="#7a8aa0">one Ethernet segment - layer 2</text>
+
+  <!-- Host -->
+  <rect x="28" y="98" width="210" height="104" rx="8" fill="#eef3fb" stroke="#3b6ea5" stroke-width="1.5"/>
+  <text x="133" y="124" text-anchor="middle" font-weight="bold">Host (Linux)</text>
+  <text x="133" y="146" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="13">cdc_ncm</text>
+  <text x="133" y="168" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="13">192.168.1.218/24</text>
+  <text x="133" y="188" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="11" fill="#555">MAC 00:00:5e:00:53:01</text>
+
+  <!-- Pico -->
+  <rect x="305" y="98" width="210" height="104" rx="8" fill="#fdf3e7" stroke="#c8862b" stroke-width="1.5"/>
+  <text x="410" y="124" text-anchor="middle" font-weight="bold">Pico W</text>
+  <text x="410" y="145" text-anchor="middle" font-size="12">transparent L2 bridge</text>
+  <text x="410" y="165" text-anchor="middle" font-size="12" fill="#b03a2e">no IP of its own</text>
+  <text x="410" y="186" text-anchor="middle" font-size="11" fill="#555">adopts the station MAC</text>
+
+  <!-- AP -->
+  <rect x="582" y="98" width="210" height="104" rx="8" fill="#eaf6ee" stroke="#3d8b54" stroke-width="1.5"/>
+  <text x="687" y="124" text-anchor="middle" font-weight="bold">AP / router</text>
+  <text x="687" y="146" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="13">192.168.1.0/24</text>
+  <text x="687" y="168" text-anchor="middle" font-size="12">gateway .1</text>
+  <text x="687" y="188" text-anchor="middle" font-size="12">+ internet</text>
+
+  <!-- USB link -->
+  <line x1="238" y1="142" x2="303" y2="142" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="305" y1="158" x2="240" y2="158" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="271" y="132" text-anchor="middle" font-size="12">USB</text>
+  <text x="271" y="182" text-anchor="middle" font-size="11">CDC-NCM</text>
+
+  <!-- Wi-Fi link -->
+  <line x1="515" y1="142" x2="580" y2="142" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="582" y1="158" x2="517" y2="158" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="548" y="132" text-anchor="middle" font-size="12">Wi-Fi</text>
+  <text x="548" y="182" text-anchor="middle" font-size="11">802.11 station</text>
+
+  <text x="410" y="252" text-anchor="middle" fill="#333" font-size="13">One MAC and one IP - the host's - end to end.</text>
+  <text x="410" y="274" text-anchor="middle" fill="#555" font-size="12">The Pico holds no address and forwards Ethernet frames verbatim; no NAT, no private subnet.</text>
+</svg>

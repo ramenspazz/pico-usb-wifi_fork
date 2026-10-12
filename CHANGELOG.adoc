@@ -1,0 +1,56 @@
+= Changelog
+
+All notable changes to `pico-usb-wifi` are documented here.
+
+The format follows https://keepachangelog.com/en/1.1.0/[Keep a Changelog], and the project adheres to https://semver.org/[Semantic Versioning].
+
+== v1.1.0 - 2026-06-27
+
+=== Added
+
+* Multiple saved Wi-Fi credential profiles (up to eight). One profile is _active_ and the device associates with it; `list`, `use <n>`, and `del <n>` manage the set on the management console, and `set ssid`/`set pass` edit the active profile. One adapter can now carry the networks for several sites. (Implements #2.)
+* Wireless network scan on the management console. `scan` lists nearby networks as a numbered menu (SSID, signal, and BSSID) with a submenu (`back | join <n> | scan | live`); `join <n>` selects a network by number -- so an SSID that is awkward to type, or non-ASCII, is still joinable -- and stages it as the active profile, ready for `set pass`. The scan is passive and unions several passes, so it catches access points a single sweep misses, and works even while the device is mid-association. A `live` sub-command streams nearby access points continuously -- SSID, signal, channel, and BSSID -- while disassociated, until any key is pressed, with a double-flash heartbeat LED for the duration. (Implements #2.)
+* Per-profile authentication: a blank password joins an open network, and a set password uses WPA2/WPA3 transition mode (AES), so the station associates with open, WPA2, or WPA3 access points. (WPA3 implements #3.)
+* The debug stats line gains a `link=` field reporting the station's Wi-Fi link status, including the failure reasons (`badauth`, `nonet`, `fail`) that otherwise show only as a perpetual "associating".
+
+=== Changed
+
+* *BREAKING:* the flash configuration record was widened from a single credential to a profile list, changing its layout and magic number. A record saved by v1.0.x fails the new magic/CRC check and is discarded, so *after upgrading the device boots unprovisioned and the Wi-Fi network(s) must be re-entered once* over the management console. Persistence now programs the whole 4 KiB flash sector instead of a single 256-byte page.
+* The management-console prompt reflects the current menu (`(set|scan|list|use|save) #`, or `(back|join|scan) #` in the scan submenu), and the state dump shows the saved-profile count and active profile.
+* The debug stats line replaces the all-time `ringmax` (which latched at the ring ceiling and stopped being informative) with `ringpk`: the peak USB-TX ring depth since the previous line, so it tracks recent load.
+
+== v1.0.2 - 2026-06-21
+
+=== Fixed
+
+* Hard fault under sustained throughput. `pbuf_alloc`/`pbuf_free` ran in the main loop without the cyw43 lock, racing the background Wi-Fi context over the shared lwIP pbuf pool (pico-sdk's `sys_arch_protect` is a no-op, so the cyw43 lock is the only mutual exclusion). Under load the free list corrupted and the firmware hard-faulted within seconds. All main-loop pbuf operations are now bracketed with `cyw43_arch_lwip_begin()`/`cyw43_arch_lwip_end()`. Verified with an 80-minute iperf soak (2.65 GB) with no faults.
+
+=== Added
+
+* Hardware watchdog: if the firmware stops servicing its main loop, the device auto-resets and re-enumerates within a few seconds instead of needing a physical replug.
+* A hard-fault handler that records the faulting PC/LR into reboot-surviving RAM and reboots immediately, reported on the next boot and in the `stats:` line.
+* New debug `stats:` fields -- `poolfail` (pbuf-pool exhaustion drops), `ringmax` (Wi-Fi-to-host USB-TX queue high-water mark), `hangs` (watchdog recoveries), `faults`/`faultpc` (hard-fault recoveries and address), and `freeram` (free RAM, for tuning).
+
+=== Changed
+
+* Throughput: enabled NCM transmit double-buffering (`CFG_TUD_NCM_IN_NTB_N` = 2) and enlarged the USB-TX ring (16 -> 32) and pbuf pool (32 -> 48). Sustains ~4.75 Mbit/s over USB Full Speed.
+* Per-frame `W>H`/`H>W` debug logging is now a build-time option (`-DTRACE_FRAMES=1`); by default the debug console shows association events and the periodic `stats:` line only.
+
+== v1.0.1 - 2026-06-21
+
+=== Fixed
+
+* NCM receive path could leave the USB OUT endpoint un-armed after dropping a datagram under pbuf-pool exhaustion, permanently wedging the host-to-device direction: the host logged `NETDEV WATCHDOG: transmit queue timed out` every five seconds and the interface stopped passing traffic, while the LED stayed solid and the consoles kept working. The receive path now re-arms after every consumed or dropped datagram. (Fixes #1)
+
+== v1.0.0 - 2026-06-21
+
+Initial release.
+
+=== Added
+
+* Transparent layer-2 USB-to-Wi-Fi bridge via MAC adoption (CDC-NCM): one MAC and one IP identity end to end, IPv4 and IPv6, with no NAT and no private subnet.
+* CDC-ACM management console for runtime Wi-Fi provisioning and status.
+* CDC-ACM debug console with periodic bridge statistics and opt-in per-frame logging.
+* Flash-backed configuration with compile-time defaults.
+* Firmware version derived from the git tag, embedded at build time and shown in the management-console banner.
+* GitLab CI that builds the firmware and publishes `pico-usb-wifi.uf2` to tagged releases.
